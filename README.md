@@ -37,7 +37,7 @@ datasets
 
 ## Usage
 
-1.You can download [Houston &amp; Pavia]([https://github.com/YuxiangZhang-BIT/Data-CSHSI](https://drive.google.com/drive/folders/1No-DNDT9P1HKsM9QKKJJzat8A1ZhVmmz?usp=drive_link)) dataset here.
+1.You can download [Houston &amp; Pavia](https://drive.google.com/drive/folders/1No-DNDT9P1HKsM9QKKJJzat8A1ZhVmmz?usp=drive_link) dataset here.
 
 2.You can change the `source_name` and `target_name` in train.py to set different transfer tasks.
 
