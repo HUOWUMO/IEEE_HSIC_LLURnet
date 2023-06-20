@@ -1,7 +1,7 @@
 # Locally Linear Embedding Unbiased Domain Randomization Networks for Cross-Scene Hyperspectral Image Classification
 
 <p align='center'>
-  <img src='abstract.png' width="800px">
+  <img src='abstract.pdf' width="800px">
 </p>
 
 ## Abstract
