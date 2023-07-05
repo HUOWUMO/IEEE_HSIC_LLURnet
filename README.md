@@ -1,4 +1,4 @@
-# Locally Linear Embedding Unbiased Domain Randomization Network for Cross-Scene Hyperspectral Image Classification
+# Locally Linear Unbiased Domain Randomization Network for Cross-Scene Hyperspectral Image Classification
 
 <p align='center'>
   <img src='abstract_00.png' width="800px">
