@@ -1,4 +1,4 @@
-# Locally Linear Unbiased Domain Randomization Network for Cross-Scene Hyperspectral Image Classification
+# Locally Linear Unbiased Randomization Network for Cross-Scene Hyperspectral Image Classification
 
 <p align='center'>
   <img src='abstract_00.png' width="800px">
@@ -6,7 +6,7 @@
 
 ## Abstract
 
-Unseen target domains are inevitable, particularly in cross-scene hyperspectral image classification tasks. One feasible strategy is performing domain expansion with latent variables and learning domain-invariant representation in domain generalization. Following this framework, this study proposes a generation network for extension, which consists of symmetric encoder-decoder to implicitly build local joint feature under style randomization. Moreover, supervised contrastive learning is employed to avoid duplicate augmentation. Besides, considering the trade-off between domain-specific and domain-invariant, an adversarial penalty term is formed by inter-class and intra-class contrastive regularization in the discriminator. Multiple evaluations on two publicly HSI datasets indicate that proposed method outperforms state-of-the-art approaches. 
+For hyperspectral cross-domain recognition applications, the unseen target domain is inevitable, and the model can only be trained on the source domain but directly applied to unknown domains. A major challenge of this domain generalization problem comes from the domain shift caused by differences in environments, devices, etc. One feasible strategy is performing domain expansion with latent variables and learning domain-invariant representation. Inspired by this framework, the study proposes a generation network for extension, which consists of symmetric encoder-decoder to implicitly build local joint feature under style randomization. Moreover, supervised contrastive learning is employed to avoid duplicate augmentation. Besides, considering the trade-off between domain-specific and domain-invariant, an adversarial penalty term is formed by inter-class and intra-class contrastive regularization in the discriminator. Multiple evaluations on three public HSI datasets indicate that proposed method outperforms state-of-the-art approaches. 
 ## Requirements
 
 CUDA Version: 11.7
