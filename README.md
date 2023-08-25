@@ -54,4 +54,3 @@ python train.py --data_path ./datasets/Pavia/ --source_name paviaU --target_name
 ## Note
 
 - The variable names of data and gt in .mat file are set as `ori_data` and `map`.
-- For Pavia dataset and Houston dataset, args.re_ratio is set to 1 and 5, respectively
