@@ -7,6 +7,26 @@
 ## Abstract
 
 For hyperspectral cross-domain recognition applications, the unseen target domain is inevitable, and the model can only be trained on the source domain but directly applied to unknown domains. A major challenge of this domain generalization problem comes from the domain shift caused by differences in environments, devices, etc. One feasible strategy is performing domain expansion with latent variables and learning domain-invariant representation. Inspired by this framework, the study proposes a generation network for extension, which consists of symmetric encoder-decoder to implicitly build local joint feature under style randomization. Moreover, supervised contrastive learning is employed to avoid duplicate augmentation. Besides, considering the trade-off between domain-specific and domain-invariant, an adversarial penalty term is formed by inter-class and intra-class contrastive regularization in the discriminator. Multiple evaluations on three public HSI datasets indicate that proposed method outperforms state-of-the-art approaches. 
+
+## Paper
+
+Please cite our paper if you find the code or dataset useful for your research.
+
+```
+@ARTICLE{10268956,
+  author={Zhao, Hanqing and Zhang, Jiawei and Lin, Lianlei and Wang, Junkai and Gao, Sheng and Zhang, Zongwei},
+  journal={IEEE Transactions on Geoscience and Remote Sensing}, 
+  title={Locally Linear Unbiased Randomization Network for Cross-Scene Hyperspectral Image Classification}, 
+  year={2023},
+  volume={},
+  number={},
+  pages={1-1},
+  doi={10.1109/TGRS.2023.3321347}}
+
+```
+
+
+
 ## Requirements
 
 CUDA Version: 11.7
