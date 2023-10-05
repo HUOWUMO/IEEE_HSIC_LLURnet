@@ -7,7 +7,7 @@ class Discriminator(nn.Module):
 
     def __init__(self, inchannel, outchannel, num_classes, patch_size):
         super(Discriminator, self).__init__()
-        dim = 512
+        dim = 128
         self.patch_size = patch_size
         self.inchannel = inchannel
         self.conv1 = nn.Conv2d(inchannel, 64, kernel_size=3, stride=1, padding=0)
