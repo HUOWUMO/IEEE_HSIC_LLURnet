@@ -20,7 +20,7 @@ class Spa_Spe_Randomization(nn.Module):
 
             x = (x - mean) / (var + self.eps).sqrt()
 
-            idx_swap = torch.randperm(N)  # 随机数是怎么改变的？每一次epoch后都变化，还是仅在实例化后仅一次
+            idx_swap = torch.randperm(N)  
             mean = self.alpha * mean + (1 - self.alpha) * mean[idx_swap]  # 从batch中选择随机化均值和方差
             var = self.alpha * var + (1 - self.alpha) * var[idx_swap]
 
@@ -40,7 +40,7 @@ class Generator_3DCNN_SupCompress_pca(nn.Module):
         self.n_pca = dim1
 
         # 2D_CONV
-        self.conv_pca = nn.Conv2d(imdim, self.n_pca, 1, 1)  # 本质上是对光谱维度的下采样线性插值，还原出原始光谱
+        self.conv_pca = nn.Conv2d(imdim, self.n_pca, 1, 1) 
 
         self.inchannel = self.n_pca
 
@@ -52,7 +52,7 @@ class Generator_3DCNN_SupCompress_pca(nn.Module):
         # 3D空谱随机化
         self.Spa_Spe_Random = Spa_Spe_Randomization(device=device)
 
-        # 3D_CONV-在kernel_size不变下,还原和3D_CONV成一个逆过程(期望结构上的逆过程能够约束数据的采样还原)
+        # 
         self.conv6 = nn.ConvTranspose3d(in_channels=self.n_channel, out_channels=1, kernel_size=(3, 3, 3))
 
         # 2D_CONV
