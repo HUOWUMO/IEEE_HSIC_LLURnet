@@ -44,7 +44,7 @@ group_train.add_argument('--batch_size', type=int, default=64,
 group_train.add_argument('--pro_dim', type=int, default=128)
 group_train.add_argument('--test_stride', type=int, default=1,
                          help="Sliding window step stride during inference (default = 1)")
-parser.add_argument('--seed', type=int, default=3407,
+parser.add_argument('--seed', type=int, default=233,
                     help='random seed ')
 parser.add_argument('--l2_decay', type=float, default=1e-4,
                     help='the L2  weight decay')
