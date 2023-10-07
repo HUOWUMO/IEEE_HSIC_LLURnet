@@ -54,8 +54,8 @@ parser.add_argument('--training_sample_ratio', type=float, default=0.8,
                     help='training sample ratio')
 parser.add_argument('--re_ratio', type=int, default=5,  # PaviaU-1 Houston13-5，图像扩充倍数
                     help='multiple of of data augmentation')
-parser.add_argument('--max_epoch', type=int, default=400)
-parser.add_argument('--log_interval', type=int, default=40)
+parser.add_argument('--max_epoch', type=int, default=200)
+parser.add_argument('--log_interval', type=int, default=20)
 parser.add_argument('--lambda_1', type=float, default=1.0)
 parser.add_argument('--lambda_2', type=float, default=1.0)
 parser.add_argument('--lr_scheduler', type=str, default='none')
