@@ -250,7 +250,6 @@ def experiment():
             taracc = evaluate_tgt(D_net, args.gpu, test_loader, pklpath)
             taracc_list.append(round(taracc, 2))
             print(f'load pth, target sample number {len(test_loader.dataset)}, max taracc {max(taracc_list):2.2f}')
-    writer.close()
 
 
 if __name__ == '__main__':
