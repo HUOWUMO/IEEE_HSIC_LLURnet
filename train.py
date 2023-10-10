@@ -19,17 +19,17 @@ from utils_HSI import sample_gt, metrics, seed_worker
 
 parser = argparse.ArgumentParser(description='PyTorch SDEnet')
 parser.add_argument('--save_path', type=str, default='./results/')
-parser.add_argument('--data_path', type=str, default='./datasets/Houston/')
+parser.add_argument('--data_path', type=str, default='./datasets/Pavia/')
 
-parser.add_argument('--source_name', type=str, default='Houston13',
+parser.add_argument('--source_name', type=str, default='paviaU',
                     help='the name of the source dir')
-parser.add_argument('--target_name', type=str, default='Houston18',
+parser.add_argument('--target_name', type=str, default='paviaC',
                     help='the name of the test dir')
 parser.add_argument('--gpu', type=int, default=0,
                     help="Specify CUDA device (defaults to -1, which learns on CPU)")
 
-parser.add_argument('--dim1', type=int, default=128)
-parser.add_argument('--dim2', type=int, default=8)
+parser.add_argument('--dim1', type=int, default=8)
+parser.add_argument('--dim2', type=int, default=16)
 
 group_train = parser.add_argument_group('Training')
 group_train.add_argument('--patch_size', type=int, default=13,
@@ -52,7 +52,7 @@ parser.add_argument('--num_epoch', type=int, default=500,
                     help='the number of epoch')
 parser.add_argument('--training_sample_ratio', type=float, default=0.8,
                     help='training sample ratio')
-parser.add_argument('--re_ratio', type=int, default=5,  # PaviaU-1 Houston13-5，图像扩充倍数
+parser.add_argument('--re_ratio', type=int, default=1,  # PaviaU-1 Houston13-5，图像扩充倍数
                     help='multiple of of data augmentation')
 parser.add_argument('--max_epoch', type=int, default=400)
 parser.add_argument('--log_interval', type=int, default=40)
@@ -194,21 +194,24 @@ def experiment():
         for i, (x, y) in enumerate(train_loader):
             x, y = x.to(args.gpu), y.to(args.gpu)
             y = y - 1
-
-            x_ED = G_net(x)
+            with torch.no_grad():  # 将模型前向传播的代码放到with torch.no_grad()下，就能使pytorch不生成计算图，从而节省不少显存
+                x_ED = G_net(x)
             rand = torch.nn.init.uniform_(torch.empty(len(x), 1, 1, 1)).to(args.gpu)  # Uniform distribution
             x_ID = rand * x + (1 - rand) * x_ED
-
+            x_tgt = G_net(x)
             p_SD, z_SD = D_net(x, mode='train')
             p_ED, z_ED = D_net(x_ED, mode='train')
             p_ID, z_ID = D_net(x_ID, mode='train')
             zsrc = torch.cat([z_SD.unsqueeze(1), z_ED.unsqueeze(1), z_ID.unsqueeze(1)], dim=1)
             src_cls_loss = cls_criterion(p_SD, y.long()) + cls_criterion(p_ED, y.long()) + cls_criterion(p_ID, y.long())
+            p_tgt, z_tgt = D_net(x_tgt, mode='train')
+            tgt_cls_loss = cls_criterion(p_tgt, y.long())  # 辅助损失
 
-            con_loss = con_criterion(zsrc, y, adv=False)
+            zall = torch.cat([z_tgt.unsqueeze(1), zsrc], dim=1)
+            con_loss = con_criterion(zall, y, adv=False)
 
             num_adv = y.unique().size()
-            zsrc_con = torch.cat([z_ED.unsqueeze(1), z_ED.unsqueeze(1).detach(), z_ID.unsqueeze(1).detach()],
+            zsrc_con = torch.cat([z_tgt.unsqueeze(1), z_ED.unsqueeze(1).detach(), z_ID.unsqueeze(1).detach()],
                                  dim=1)
             con_loss_adv = 0
             idx_1 = np.random.randint(0, zsrc.size(1))
@@ -227,8 +230,7 @@ def experiment():
             loss1.backward(retain_graph=True)
             D_opt.step()
 
-            loss2 = cls_criterion(p_ED, y.long()) + args.lambda_2 * con_loss_adv
-
+            loss2 = tgt_cls_loss + args.lambda_2 * con_loss_adv
             G_opt.zero_grad()
             loss2.backward()
             G_opt.step()
