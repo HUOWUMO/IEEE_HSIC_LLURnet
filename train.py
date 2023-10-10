@@ -203,35 +203,34 @@ def experiment():
             p_ED, z_ED = D_net(x_ED, mode='train')
             p_ID, z_ID = D_net(x_ID, mode='train')
             zsrc = torch.cat([z_SD.unsqueeze(1), z_ED.unsqueeze(1), z_ID.unsqueeze(1)], dim=1)
-            src_cls_loss = cls_criterion(p_SD, y.long()) + cls_criterion(p_ID, y.long())
+            src_cls_loss = cls_criterion(p_SD, y.long()) + cls_criterion(p_ED, y.long()) + cls_criterion(p_ID, y.long())
 
             con_loss = con_criterion(zsrc, y, adv=False)
-            loss1 = src_cls_loss + args.lambda_1 * con_loss 
-            D_opt.zero_grad()  # 先只优化D_net
-            loss1.backward(retain_graph=True)  # 不释放计算图，对Loss2进行计算时，梯度是累加的
 
             num_adv = y.unique().size()
             zsrc_con = torch.cat([z_ED.unsqueeze(1), z_ED.unsqueeze(1).detach(), z_ID.unsqueeze(1).detach()],
                                  dim=1)
             con_loss_adv = 0
-            idx_1 = np.random.randint(0, zsrc.size(1))  # 随机从三组伪域中选一组用于和真域对比
-            for i, id in enumerate(y.unique()):  # 然后优化G_net
+            idx_1 = np.random.randint(0, zsrc.size(1))
+            for i, id in enumerate(y.unique()):
                 mask = y == y.unique()[i]
                 z_SD_i, zsrc_i = z_SD[mask], zsrc_con[mask]
-                y_i = torch.cat([torch.zeros(z_SD_i.shape[0]), torch.ones(z_SD_i.shape[0])])  # 打上新的真伪标签，真-0，伪-1
+                y_i = torch.cat([torch.zeros(z_SD_i.shape[0]), torch.ones(z_SD_i.shape[0])])
                 zall = torch.cat([z_SD_i.unsqueeze(1).detach(), zsrc_i[:, idx_1:idx_1 + 1]],
-                                 dim=0)  # 特别注意，该索引左闭右开，相当于取idx_1这一列
+                                 dim=0)
                 if y_i.size()[0] > 2:
                     con_loss_adv += con_criterion(zall, y_i)
-            con_loss_adv = con_loss_adv / y.unique().shape[0]  # 计算平均每个类别的真伪对比损失
-            # 这里的辅助损失约束生成参数，保证其生成的样本在正确的标签空间
-            loss2 = cls_criterion(p_ED, y.long()) + args.lambda_2 * con_loss_adv  # 原版
+            con_loss_adv = con_loss_adv / y.unique().shape[0]
 
-            G_opt.zero_grad()  # 清空G的梯度，保留了D的梯度，相当于前面的loss.backward(retain_graph=True)对G不起作用
-            loss2.backward()
+            loss1 = src_cls_loss + args.lambda_1 * con_loss + args.lambda_2 * con_loss_adv
+            D_opt.zero_grad()
+            loss1.backward(retain_graph=True)
             D_opt.step()
-            # 继续优化D_net（第二次 backward），D被LOSS1和2共同更新
 
+            loss2 = cls_criterion(p_ED, y.long()) + args.lambda_2 * con_loss_adv
+
+            G_opt.zero_grad()
+            loss2.backward()
             G_opt.step()
 
         D_net.eval()
