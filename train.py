@@ -192,7 +192,7 @@ def experiment():
         for i, (x, y) in enumerate(train_loader):
             x, y = x.to(args.gpu), y.to(args.gpu)
             y = y - 1
-            with torch.no_grad():  # 将模型前向传播的代码放到with torch.no_grad()下，就能使pytorch不生成计算图，从而节省不少显存
+            with torch.no_grad():  # 将模型前向传播的代码放到with torch.no_grad()下，就能使pytorch不生成计算图
                 x_ED = G_net(x)
             rand = torch.nn.init.uniform_(torch.empty(len(x), 1, 1, 1)).to(args.gpu)  # Uniform distribution
             x_ID = rand * x + (1 - rand) * x_ED
@@ -205,7 +205,7 @@ def experiment():
             tgt_cls_loss = cls_criterion(p_tgt, y.long())  # 辅助损失
 
             zsrc = torch.cat([z_SD.unsqueeze(1), z_ED.unsqueeze(1), z_ID.unsqueeze(1)], dim=1)
-            src_cls_loss = cls_criterion(p_SD, y.long()) + cls_criterion(p_ED, y.long()) + cls_criterion(p_ID, y.long()) + tgt_cls_loss
+            src_cls_loss = cls_criterion(p_SD, y.long()) + cls_criterion(p_ED, y.long()) + cls_criterion(p_ID, y.long()) 
 
             zall = torch.cat([z_tgt.unsqueeze(1), zsrc], dim=1)
             con_loss = con_criterion(zall, y, adv=False)
