@@ -171,8 +171,6 @@ def experiment():
     imsize = [hyperparams['patch_size'], hyperparams['patch_size']]
 
     # =================鉴别器模型配置=================
-
-    # 原版SDEnet
     D_net = discriminator.Discriminator(inchannel=N_BANDS, outchannel=args.pro_dim, num_classes=num_classes,
                                         patch_size=hyperparams['patch_size']).to(args.gpu)
     # =================生成器模型配置=================
