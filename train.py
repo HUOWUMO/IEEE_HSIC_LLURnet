@@ -234,9 +234,6 @@ def experiment():
 
             G_opt.step()
 
-            loss_list.append([src_cls_loss.item(), tgt_cls_loss.item(), con_loss.item(), con_loss_adv.item()])
-        src_cls_loss, tgt_cls_loss, con_loss, con_loss_adv = np.mean(loss_list, 0)
-
         D_net.eval()
         teacc = evaluate(D_net, val_loader, args.gpu)
         if best_acc < teacc:
@@ -247,13 +244,7 @@ def experiment():
             torch.save({'Generator': G_net.state_dict()}, os.path.join(log_dir, f'best_G.pkl'))
         t2 = time.time()
 
-        print(
-            f'epoch {epoch}, train {len(train_loader.dataset)}, time {t2 - t1:.2f}, src_cls {src_cls_loss:.4f} tgt_cls {tgt_cls_loss:.4f} con {con_loss:.4f} con_adv {con_loss_adv:.4f} /// val {len(val_loader.dataset)}, teacc {teacc:2.2f}')
-        writer.add_scalar('src_cls_loss', src_cls_loss, epoch)
-        writer.add_scalar('tgt_cls_loss', tgt_cls_loss, epoch)
-        writer.add_scalar('con_loss', con_loss, epoch)
-        writer.add_scalar('con_loss_adv', con_loss_adv, epoch)
-        writer.add_scalar('teacc', teacc, epoch)
+        print(f'epoch {epoch}, train {len(train_loader.dataset)}, time {t2 - t1:.2f}/// val {len(val_loader.dataset)}, teacc {teacc:2.2f}')
 
         if epoch % args.log_interval == 0:
             pklpath = f'{log_dir}/best.pkl'
