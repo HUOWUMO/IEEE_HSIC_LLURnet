@@ -29,11 +29,11 @@ Please cite our paper if you find the code or dataset useful for your research.
 
 ## Requirements
 
-CUDA Version: 11.7
+CUDA Version: 11.8
 
 torch: 2.0.0
 
-Python: 3.10
+Python: 3.8
 
 ## Dataset
 
