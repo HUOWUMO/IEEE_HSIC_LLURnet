@@ -205,7 +205,7 @@ def experiment():
             tgt_cls_loss = cls_criterion(p_tgt, y.long())  # 辅助损失
 
             zsrc = torch.cat([z_SD.unsqueeze(1), z_ED.unsqueeze(1), z_ID.unsqueeze(1)], dim=1)
-            src_cls_loss = cls_criterion(p_SD, y.long()) + cls_criterion(p_ED, y.long()) + cls_criterion(p_ID, y.long()) 
+            src_cls_loss = cls_criterion(p_SD, y.long()) + cls_criterion(p_ED, y.long()) + cls_criterion(p_ID, y.long()) + tgt_cls_loss
 
             zall = torch.cat([z_tgt.unsqueeze(1), zsrc], dim=1)
             con_loss = con_criterion(zall, y, adv=False)
