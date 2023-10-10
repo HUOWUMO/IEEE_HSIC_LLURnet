@@ -200,10 +200,12 @@ def experiment():
             p_SD, z_SD = D_net(x, mode='train')
             p_ED, z_ED = D_net(x_ED, mode='train')
             p_ID, z_ID = D_net(x_ID, mode='train')
-            zsrc = torch.cat([z_SD.unsqueeze(1), z_ED.unsqueeze(1), z_ID.unsqueeze(1)], dim=1)
-            src_cls_loss = cls_criterion(p_SD, y.long()) + cls_criterion(p_ED, y.long()) + cls_criterion(p_ID, y.long())
+            
             p_tgt, z_tgt = D_net(x_tgt, mode='train')
             tgt_cls_loss = cls_criterion(p_tgt, y.long())  # 辅助损失
+
+            zsrc = torch.cat([z_SD.unsqueeze(1), z_ED.unsqueeze(1), z_ID.unsqueeze(1)], dim=1)
+            src_cls_loss = cls_criterion(p_SD, y.long()) + cls_criterion(p_ED, y.long()) + cls_criterion(p_ID, y.long()) + tgt_cls_loss
 
             zall = torch.cat([z_tgt.unsqueeze(1), zsrc], dim=1)
             con_loss = con_criterion(zall, y, adv=False)
