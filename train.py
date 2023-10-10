@@ -61,9 +61,9 @@ parser.add_argument('--lambda_2', type=float, default=1.0)
 parser.add_argument('--lr_scheduler', type=str, default='none')
 
 group_da = parser.add_argument_group('Data augmentation')
-group_da.add_argument('--flip_augmentation', action='store_true', default=True,
+group_da.add_argument('--flip_augmentation', action='store_true', default=False,
                       help="Random flips (if patch_size > 1)")
-group_da.add_argument('--radiation_augmentation', action='store_true', default=True,
+group_da.add_argument('--radiation_augmentation', action='store_true', default=False,
                       help="Random radiation noise (illumination)")
 group_da.add_argument('--mixture_augmentation', action='store_true', default=False,
                       help="Random mixes between spectra")
