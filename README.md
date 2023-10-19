@@ -18,9 +18,9 @@ Please cite our paper if you find the code or dataset useful for your research.
   journal={IEEE Transactions on Geoscience and Remote Sensing}, 
   title={Locally Linear Unbiased Randomization Network for Cross-Scene Hyperspectral Image Classification}, 
   year={2023},
-  volume={},
+  volume={61},
   number={},
-  pages={1-1},
+  pages={1-12},
   doi={10.1109/TGRS.2023.3321347}}
 
 ```
