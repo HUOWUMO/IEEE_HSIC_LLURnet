@@ -184,56 +184,61 @@ def experiment():
     # =================开始训练=================
     best_acc = 0
     taracc, taracc_list = 0, []
-    for epoch in range(1, args.max_epoch + 1):
+   for epoch in range(1, args.max_epoch + 1):
 
         t1 = time.time()
         loss_list = []
-        D_net.train()  # model.train()的作用是启用 Batch Normalization 和 Dropout,model.train()的作用是启用 Batch Normalization 和 Dropout。
+        D_net.train()  
         for i, (x, y) in enumerate(train_loader):
             x, y = x.to(args.gpu), y.to(args.gpu)
             y = y - 1
-            with torch.no_grad():  # 将模型前向传播的代码放到with torch.no_grad()下，就能使pytorch不生成计算图，从而节省不少显存
+            with torch.no_grad():  
                 x_ED = G_net(x)
             rand = torch.nn.init.uniform_(torch.empty(len(x), 1, 1, 1)).to(args.gpu)  # Uniform distribution
             x_ID = rand * x + (1 - rand) * x_ED
+
             x_tgt = G_net(x)
+
             p_SD, z_SD = D_net(x, mode='train')
             p_ED, z_ED = D_net(x_ED, mode='train')
             p_ID, z_ID = D_net(x_ID, mode='train')
-            
+            zsrc = torch.cat([z_SD.unsqueeze(1), z_ED.unsqueeze(1), z_ID.unsqueeze(1)], dim=1)
+            src_cls_loss = cls_criterion(p_SD, y.long()) + cls_criterion(p_ED, y.long()) + cls_criterion(p_ID, y.long())
             p_tgt, z_tgt = D_net(x_tgt, mode='train')
             tgt_cls_loss = cls_criterion(p_tgt, y.long())  # 辅助损失
 
-            zsrc = torch.cat([z_SD.unsqueeze(1), z_ED.unsqueeze(1), z_ID.unsqueeze(1)], dim=1)
-            src_cls_loss = cls_criterion(p_SD, y.long()) + cls_criterion(p_ED, y.long()) + cls_criterion(p_ID, y.long()) + tgt_cls_loss
-
             zall = torch.cat([z_tgt.unsqueeze(1), zsrc], dim=1)
             con_loss = con_criterion(zall, y, adv=False)
+            loss1 = src_cls_loss + args.lambda_1 * con_loss + tgt_cls_loss
+            D_opt.zero_grad()  # 先只优化D_net
+            loss1.backward(retain_graph=True)  # 不释放计算图，对Loss2进行计算时，梯度是累加的
+            # D_opt.step()  # 用于no adv实验
 
             num_adv = y.unique().size()
             zsrc_con = torch.cat([z_tgt.unsqueeze(1), z_ED.unsqueeze(1).detach(), z_ID.unsqueeze(1).detach()],
                                  dim=1)
             con_loss_adv = 0
-            idx_1 = np.random.randint(0, zsrc.size(1))
-            for i, id in enumerate(y.unique()):
+            idx_1 = np.random.randint(0, zsrc.size(1))  # 随机从三组伪域中选一组用于和真域对比
+            for i, id in enumerate(y.unique()):  # 然后优化G_net
                 mask = y == y.unique()[i]
                 z_SD_i, zsrc_i = z_SD[mask], zsrc_con[mask]
-                y_i = torch.cat([torch.zeros(z_SD_i.shape[0]), torch.ones(z_SD_i.shape[0])])
+                y_i = torch.cat([torch.zeros(z_SD_i.shape[0]), torch.ones(z_SD_i.shape[0])])  # 打上新的真伪标签，真-0，伪-1
                 zall = torch.cat([z_SD_i.unsqueeze(1).detach(), zsrc_i[:, idx_1:idx_1 + 1]],
-                                 dim=0)
+                                 dim=0)  # 特别注意，该索引左闭右开，相当于取idx_1这一列
                 if y_i.size()[0] > 2:
                     con_loss_adv += con_criterion(zall, y_i)
-            con_loss_adv = con_loss_adv / y.unique().shape[0]
-
-            loss1 = src_cls_loss + args.lambda_1 * con_loss + args.lambda_2 * con_loss_adv
-            D_opt.zero_grad()
-            loss1.backward(retain_graph=True)
-            D_opt.step()
-
+            con_loss_adv = con_loss_adv / y.unique().shape[0]  # 计算平均每个类别的真伪对比损失
             loss2 = tgt_cls_loss + args.lambda_2 * con_loss_adv
-            G_opt.zero_grad()
+
+            G_opt.zero_grad()  # 清空G的梯度，保留了D的梯度，相当于前面的loss.backward(retain_graph=True)对G不起作用
             loss2.backward()
+            D_opt.step()
+            # 继续优化D_net（第二次 backward），D被LOSS1和2共同更新
+
             G_opt.step()
+
+        #     loss_list.append([src_cls_loss.item(), tgt_cls_loss.item(), con_loss.item(), con_loss_adv.item()])
+        # src_cls_loss, tgt_cls_loss, con_loss, con_loss_adv = np.mean(loss_list, 0)
 
         D_net.eval()
         teacc = evaluate(D_net, val_loader, args.gpu)
