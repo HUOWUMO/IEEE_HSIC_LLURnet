@@ -174,7 +174,8 @@ def experiment():
     D_net = discriminator.Discriminator(inchannel=N_BANDS, outchannel=args.pro_dim, num_classes=num_classes,
                                         patch_size=hyperparams['patch_size']).to(args.gpu)
     # =================生成器模型配置=================
-    G_net = generator.Generator_3DCNN_SupCompress_pca(imdim=N_BANDS, imsize=imsize, dim1=args.dim1, dim2=args.dim2, device=args.gpu).to(args.gpu)
+    G_net = generator.Generator_3DCNN_SupCompress_pca(imdim=N_BANDS, imsize=imsize, dim1=args.dim1, dim2=args.dim2,
+                                                      device=args.gpu).to(args.gpu)
     # =================模型LOSS与训练优化配置=================
     D_opt = optim.Adam(D_net.parameters(), lr=args.lr)
     G_opt = optim.Adam(G_net.parameters(), lr=args.lr)
@@ -184,7 +185,7 @@ def experiment():
     # =================开始训练=================
     best_acc = 0
     taracc, taracc_list = 0, []
-   for epoch in range(1, args.max_epoch + 1):
+    for epoch in range(1, args.max_epoch + 1):
 
         t1 = time.time()
         loss_list = []
@@ -192,7 +193,7 @@ def experiment():
         for i, (x, y) in enumerate(train_loader):
             x, y = x.to(args.gpu), y.to(args.gpu)
             y = y - 1
-            with torch.no_grad():  
+            with torch.no_grad():  # 将模型前向传播的代码放到with torch.no_grad()下，就能使pytorch不生成计算图，从而节省不少显存
                 x_ED = G_net(x)
             rand = torch.nn.init.uniform_(torch.empty(len(x), 1, 1, 1)).to(args.gpu)  # Uniform distribution
             x_ID = rand * x + (1 - rand) * x_ED
@@ -212,33 +213,31 @@ def experiment():
             loss1 = src_cls_loss + args.lambda_1 * con_loss + tgt_cls_loss
             D_opt.zero_grad()  # 先只优化D_net
             loss1.backward(retain_graph=True)  # 不释放计算图，对Loss2进行计算时，梯度是累加的
-            # D_opt.step()  # 用于no adv实验
 
             num_adv = y.unique().size()
             zsrc_con = torch.cat([z_tgt.unsqueeze(1), z_ED.unsqueeze(1).detach(), z_ID.unsqueeze(1).detach()],
                                  dim=1)
             con_loss_adv = 0
-            idx_1 = np.random.randint(0, zsrc.size(1))  # 随机从三组伪域中选一组用于和真域对比
-            for i, id in enumerate(y.unique()):  # 然后优化G_net
+            idx_1 = np.random.randint(0, zsrc.size(1))
+            for i, id in enumerate(y.unique()):
                 mask = y == y.unique()[i]
                 z_SD_i, zsrc_i = z_SD[mask], zsrc_con[mask]
                 y_i = torch.cat([torch.zeros(z_SD_i.shape[0]), torch.ones(z_SD_i.shape[0])])  # 打上新的真伪标签，真-0，伪-1
                 zall = torch.cat([z_SD_i.unsqueeze(1).detach(), zsrc_i[:, idx_1:idx_1 + 1]],
-                                 dim=0)  # 特别注意，该索引左闭右开，相当于取idx_1这一列
+                                 dim=0)
                 if y_i.size()[0] > 2:
                     con_loss_adv += con_criterion(zall, y_i)
             con_loss_adv = con_loss_adv / y.unique().shape[0]  # 计算平均每个类别的真伪对比损失
+
             loss2 = tgt_cls_loss + args.lambda_2 * con_loss_adv
 
-            G_opt.zero_grad()  # 清空G的梯度，保留了D的梯度，相当于前面的loss.backward(retain_graph=True)对G不起作用
+
+            G_opt.zero_grad()
             loss2.backward()
             D_opt.step()
-            # 继续优化D_net（第二次 backward），D被LOSS1和2共同更新
+
 
             G_opt.step()
-
-        #     loss_list.append([src_cls_loss.item(), tgt_cls_loss.item(), con_loss.item(), con_loss_adv.item()])
-        # src_cls_loss, tgt_cls_loss, con_loss, con_loss_adv = np.mean(loss_list, 0)
 
         D_net.eval()
         teacc = evaluate(D_net, val_loader, args.gpu)
@@ -250,7 +249,8 @@ def experiment():
             torch.save({'Generator': G_net.state_dict()}, os.path.join(log_dir, f'best_G.pkl'))
         t2 = time.time()
 
-        print(f'epoch {epoch}, train {len(train_loader.dataset)}, time {t2 - t1:.2f}/// val {len(val_loader.dataset)}, teacc {teacc:2.2f}')
+        print(
+            f'epoch {epoch}, train {len(train_loader.dataset)}, time {t2 - t1:.2f}/// val {len(val_loader.dataset)}, teacc {teacc:2.2f}')
 
         if epoch % args.log_interval == 0:
             pklpath = f'{log_dir}/best.pkl'
