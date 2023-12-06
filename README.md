@@ -68,6 +68,6 @@ python train.py --data_path ./datasets/Houston/ --source_name Houston13 --target
 ```
 Pavia dataset:
 ```
-python train.py --data_path ./datasets/Pavia/ --source_name paviaU --target_name paviaC --re_ratio 1 --dim1 8 --dim2 16 
+python train.py --data_path ./datasets/Pavia/ --source_name paviaU --target_name paviaC --re_ratio 1 --dim1 8 --dim2 16 --flip_augmentation --radiation_augmentation
 ```
 
